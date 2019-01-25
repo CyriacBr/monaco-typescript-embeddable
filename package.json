@@ -1,0 +1,31 @@
+{
+  "name": "monaco-typescript-embeddable",
+  "version": "3.3.1",
+  "description": "TypeScript and JavaScript language support for Monaco Editor, made embeddable",
+  "scripts": {
+    "compile-amd": "mcopy ./src/lib/typescriptServices-amd.js ./release/dev/lib/typescriptServices.js && tsc -p ./src/tsconfig.json",
+    "compile-esm": "mcopy ./src/lib/typescriptServices.js ./release/esm/lib/typescriptServices.js && tsc -p ./src/tsconfig.esm.json",
+    "compile": "mrmdir ./release && npm run compile-amd && npm run compile-esm",
+    "watch": "tsc -p ./src --watch",
+    "prepublishOnly": "npm run compile && node ./scripts/bundle && mcopy ./src/monaco.d.ts ./release/monaco.d.ts",
+    "import-typescript": "node ./scripts/importTypescript"
+  },
+  "author": "Microsoft Corporation",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Microsoft/monaco-typescript"
+  },
+  "bugs": {
+    "url": "https://github.com/Microsoft/monaco-typescript/issues"
+  },
+  "devDependencies": {
+    "monaco-editor-core": "^0.15.5",
+    "monaco-languages": "^1.6.0",
+    "monaco-plugin-helpers": "^1.0.2",
+    "requirejs": "^2.3.6",
+    "typescript": "^3.2.2",
+    "uglify-js": "^3.4.9"
+  },
+  "dependencies": {}
+}

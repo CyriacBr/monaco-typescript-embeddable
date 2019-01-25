@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link
+      rel="stylesheet"
+      data-name="vs/editor/editor.main"
+      href="../node_modules/monaco-editor-core/dev/vs/editor/editor.main.css"
+    />
+  </head>
+  <body>
+    <h2>Monaco Editor TypeScript test page</h2>
+    <div id="container" style="width:800px;height:600px;border:1px solid grey"></div>
+
+    <script>
+      var paths = {
+        'vs/basic-languages': '../node_modules/monaco-languages/release/dev',
+        'vs/language/typescript': '../release/dev',
+        vs: '../node_modules/monaco-editor-core/dev/vs'
+      };
+      if (document.location.protocol === 'http:') {
+        // Add support for running local http server
+        let testIndex = document.location.pathname.indexOf('/test/');
+        if (testIndex !== -1) {
+          let prefix = document.location.pathname.substr(0, testIndex);
+          paths['vs/language/typescript'] = prefix + '/release/dev';
+        }
+      }
+      var require = {
+        paths: paths
+      };
+    </script>
+    <script src="../node_modules/monaco-editor-core/dev/vs/loader.js"></script>
+    <script src="../node_modules/monaco-editor-core/dev/vs/editor/editor.main.nls.js"></script>
+    <script src="../node_modules/monaco-editor-core/dev/vs/editor/editor.main.js"></script>
+
+    <script>
+      require([
+        'vs/basic-languages/monaco.contribution',
+        'vs/language/typescript/monaco.contribution',
+        'vs/language/typescript/embeddable'
+      ], function() {
+        var editor = monaco.editor.create(document.getElementById('container'), {
+          value: `
+nbr: 5
+name: Hello
+<code>
+function add(a: number, b: number) {
+	return a + b;
+}
+</code>
+nbr2: 10
+name2: 20
+			`,
+          language: 'myLang'
+        });
+        monaco.languages.register({ id: 'myLang' });
+        Embeddable.setup('myLang');
+        Embeddable.setMakeModelContent(model => {
+          let text = model.getValue();
+          let inside = false;
+          let result = [];
+          let n = 0;
+          for (const line of text.split('\n')) {
+            if (line.match(/<code>/)) {
+              inside = true;
+              Embeddable.startBlock(n);
+              const delimiter = 'function code() {';
+              const extraChar = Embeddable.registerReplace(line, delimiter);
+              n += extraChar;
+              result.push(delimiter);
+            } else if (line.match(/<\/code>/)) {
+              inside = false;
+              const delimiter = '}';
+              const extraChar = Embeddable.registerReplace(line, delimiter);
+              n += extraChar;
+              Embeddable.endBlock(n);
+              result.push(delimiter);
+              break;
+            } else if (inside) {
+              result.push(line);
+            } else {
+              result.push(line.replace(/./gi, ' '));
+            }
+            n += line.length + 1;
+          }
+          return result.join('\n');
+        });
+      });
+    </script>
+  </body>
+</html>
